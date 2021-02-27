@@ -955,7 +955,13 @@ class Dumper(DumperBase):
 
         error = lldb.SBError()
 
-        if self.startMode_ == DebuggerStartMode.AttachExternal:
+        if (self.startMode_ == DebuggerStartMode.AttachExternal
+                # We can reuse the "attach-process" logic of AttachExternal
+                # to attach our internal debugee. Although we have already
+                # attached the debugee when StartInternal reaches here, it's
+                # benign to reattach.
+                or (self.startMode_ == DebuggerStartMode.StartInternal
+                    and self.useTerminal_)):
             attach_info = lldb.SBAttachInfo(self.attachPid_)
             self.process = self.target.Attach(attach_info, error)
             if not error.Success():
